@@ -36,6 +36,7 @@ defaultCfg = {
 	'noSpoilers':	1,		// open spoilers
 	'noPostNames':	0,		// hide post names
 	'noPostScrl':	1,		// no scroll in posts
+	'colorTrips':	0,		// use color to distinguish tripcodes
 	'keybNavig':	0,		// keyboard navigation
 	'correctTime':	0,		// correct time in posts
 	'timeOffset':	'',		//		offset in hours
@@ -125,6 +126,7 @@ Lng = {
 		'noSpoilers':	['Открывать текстовые спойлеры', 'Open text spoilers'],
 		'noPostNames':	['Скрывать имена в постах', 'Hide names in posts'],
 		'noPostScrl':	['Без скролла в постах', 'No scroll in posts'],
+		'colorTrips':	['Цветовое раскраска трипкодов', 'Use color to distinguish tripcodes'],
 		'keybNavig':	['Навигация с помощью клавиатуры* ', 'Navigation with keyboard* '],
 		'correctTime':	['Корректировать время в постах* ', 'Correct time in posts* '],
 		'timeOffset':	[' Разница во времени', ' Time difference'],
@@ -1620,6 +1622,7 @@ function getCfgPosts() {
 		lBox('noSpoilers', true, updateCSS),
 		lBox('noPostNames', true, updateCSS),
 		lBox('noPostScrl', true, updateCSS),
+		lBox('colorTrips', true, null),
 		$New('div', null, [
 			lBox('keybNavig', false, null),
 			$new('a', {'text': '?', 'href': '#', 'class': 'de-abtn'}, {'click': function(e) {
@@ -4258,6 +4261,25 @@ function getPview(post, pNum, parent, link, txt) {
 	var pView, inDoc, ytObjSrc;
 	if(post) {
 		inDoc = post.ownerDocument === doc;
+		if(Cfg['colorTrips']) // TODO move elsewhere
+		{
+			var els=post.getElementsByClassName("postertripid");
+			for (var i=0;i<els.length;i++)
+			{
+				// TEMP TODO 
+				function hashCode(str) {
+				  var hash = 0;   
+				  for (var i = 0; i < str.length; i++) {       
+				  hash = str.charCodeAt(i) + ((hash << 5) - hash);
+				      }    return hash;} 
+				function intToARGB(i){    
+				return ((i>>16)&0xFF).toString(16) +    
+				                   ((i>>8)&0xFF).toString(16) + 
+				                              (i&0xFF).toString(16);}
+				els[i].style.color="#"+intToARGB(hashCode(els[i].innerHTML));
+			}
+			console.log(els);
+		}
 		pView = inDoc ? post.cloneNode(true) : importPost(post);
 		pView.setAttribute('de-post', '');
 		pView.className = aib.cReply + ' de-pview' + (post.viewed ? ' de-viewed' : '');
@@ -4490,6 +4512,9 @@ function addPostFunc(post) {
 	embedImgLinks(post);
 	if(isExpImg) {
 		expandAllPostImg(post, null);
+	}
+	if(Cfg['colorTrips']) {
+		console.log("In trips");
 	}
 }
 
